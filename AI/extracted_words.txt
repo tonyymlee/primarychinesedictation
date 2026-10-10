@@ -1,0 +1,136 @@
+停頓 5 秒, 語音朗讀：「現在讀 [分頁名稱] 內容，請留心」
+
+點擊自動播放
+然後說'現在讀'+ 課文詞語 or 課文詞語or 漢語拼音or 挑戰題or 聽寫課文段落+ ' 內容 請留心'再停6sec'
+
+聽不到'現在'2 字
+
+你理解錯誤了,
+
+我的意思是
+
+課文詞語,漢語拼音, 挑戰題,聽寫課文段落
+
+在讀完全部內容之後, 再讀全部內容一次前, 先停5 sec, 
+然後說'全部讀完'先停3 sec,
+然後說'現在讀全部內容一次, 請留心'再停5sec', 便開始讀讀全部內容一次
+
+
+在平板播放時, 在每個字or 句, 前會聽到一個不知道什麼的字, 好像是篇. 因為什麼?
+
+在平板播放時, 在每個字or 句, 前會的2個字又聽不到. 因為什麼?
+
+
+我已讀完全部${tabTitle}內容
+
+同學,我現在會讀${tabTitle}內容，請留心
+同學,最後我現在會讀全部內容一次，請留心
+
+課文詞語,漢語拼音, 挑戰題, 聽寫課文段落
+顯示漢字 , 顯示拼音,僅顯示拼音(隱藏漢字) check box
+
+可以統一改因為一個button 放在header 上,只顯示 漢 or 拼 or漢+拼, default is 拼
+
+在播放auto mode 時按 普/廣, 不要停止auto mode
+the pause icon, when press it, can it change to play icon, when press again, change back to pause icon,
+so that i know it's pause or play
+
+change 拼音字體 to blue color
+
+change 倒數 --s to dynamic time like the picture
+
+
+
+button, add [blank] or 漢 or 拼 or漢+拼
+課文詞語,挑戰題 - defau	lt is 拼
+漢語拼音- default is 漢
+聽寫課文段落 - default is 拼
+
+
+─ 或 — 或 — 讀破折號 
+其他的符號有全形問題嗎?
+
+
+
+如果標點是符號一句的開始, 那麼 標點符號就要去回前一句的尾, 「除外.
+
+『 -開 雙引號
+』- 關 雙引號
+《 or 〈　- 開書名號 
+》 or 〉　- 關書名號 
+（- 左括弧
+）- 右括弧
+…… - 省略號
+
+also handle 全形
+
+
+可以常見的2字詞, 不分閧2行嗎?
+
+
+
+請問你怎知道那些是常見的 2 字詞?
+除輸入的字, 可以有其他日常小學用的2 字詞也不分閧2行嗎?
+
+小學1 至6 年級詞庫(500字)
+
+ 如果字有空格, 就remove 空格, and display, e.g. ' 性 賴 在 地' ->'性賴在地'
+
+把以下的字自動轉換
+著 -着
+裡- 裹
+
+其他詞語: 也加入不分閧2行的詞語
+
+如果是green background, 用白色字可以嗎?
+
+可以
+
+export file name remove space
+
+playing auto mode, can you keep the screen always on?
+
+讀標點前, 讀標點後, 都停 2 sec
+
+when playing auto mode, if i click another app, but not in the browser, can you still keep playing?
+
+
+在最後一次讀全部課文, 如有'下一個自然段' 也要讀.讀前, 讀後, 都停 2 sec
+
+課文詞語,挑戰題 漢語拼音- :最後一次讀完,  之後說, '讀完全詞語',請檢查答案.
+聽寫課文段落:最後一次讀完全部課文, 之後說, '最後一次讀完全部課文, 請不要離開坐位, 並用2分鐘檢查答案, 然後交卷, 謝謝.
+
+
+可以加一個 '抄' icon, 在課文詞語,挑戰題,漢語拼音,聽寫課文段落, 
+當按下'抄' icon, 就會copy 全部內容 in 漢 or 拼 or漢+拼
+when copy 課文詞語,挑戰題,漢語拼音, 4 個詞一行
+'抄' icon background #54d1f0, 字是白色
+
+when copy 漢+拼,在課文詞語,挑戰題,漢語拼音,
+
+words in group, 4 words in row
+ping yi in group, 4 ping yi in row
+like below
+
+奄奄一息  蠕動 伶俐 翩翩 
+顫動 動彈 歪倒 蘇醒
+
+yǎn yǎn yī xī
+yǎn yǎn yī xī
+
+
+
+
+when copy 漢+拼,在聽寫課文段落
+words and ping yi should be separate like below, also ping yi need back the 標點符號
+將所有句子集中在上方，所有拼音詞語集中在下方, and add back 標點
+
+like below
+
+康弟的耳朵很大，向下垂著，像步兵在寒冬戴的氈帽兩旁的護耳。牠的白臉很長，在雙目之間，從額頭到鼻尖，有一道寬寬的黑毛，跟白臉形成強烈的對照。康弟全身白毛，身材像一隻鹿，四條腿很長，卻有一條細細的像豬一樣的尾巴。
+
+康弟身材高大，膽子卻很小。有一回，我們試着帶牠上街。在門前的巷子裏，牠走得還有點信心。走出巷子，穿過馬路，牠走得像一隻「過街老鼠」。到 了 十 字 路 口 ， 牠 害 怕 氣 喘 的 公 車 和 怒 吼 的 摩 托 車 ， 索 性 賴 在 地 上 不 肯 走 了。一對路過的母子看得大笑—像是看到了巨人跪地求饒。他們鼓勵可憐的康弟說：「不要怕，起來走！」
+
+kāng dì shēn cái gāo dà , dǎn zǐ què hěn xiǎo。kāng dì shēn cái gāo dà , dǎn zǐ què hěn xiǎo。kāng dì shēn cái gāo dà , dǎn zǐ què hěn xiǎo。
+
+kāng dì shēn cái gāo dà , dǎn zǐ què hěn xiǎo。kāng dì shēn cái gāo dà , dǎn zǐ què hěn xiǎo。kāng dì shēn cái gāo dà , dǎn zǐ què hěn xiǎo。
