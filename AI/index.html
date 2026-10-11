@@ -407,27 +407,57 @@
       overflow-y: auto;
       background-color: var(--main-bg);
       transition: width 0.3s ease;
+      scroll-behavior: smooth;
     }
 
+    /* 📌 工具列固定在主內容區頂部 (Sticky Header) */
     .toolbar-card {
-      background: white;
+      position: sticky;
+      top: 0;
+      z-index: 800;
+      background: #ffffff;
       padding: 10px 14px;
       border-radius: 8px;
       margin-bottom: 15px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 15px;
       font-size: 0.95rem;
       flex-wrap: wrap;
+      transition: background-color 0.25s ease, box-shadow 0.25s ease, padding 0.25s ease;
     }
 
-    .toolbar-card label {
+    /* 🌊 向下滑動時：工具列背景全透明、無陰影、隱藏中間文字與輸入框 */
+    .toolbar-card.is-scrolled {
+      background-color: transparent !important;
+      background: transparent !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      box-shadow: none !important;
+      padding-left: 0;
+      padding-right: 0;
+    }
+
+    .toolbar-card.is-scrolled .toolbar-options {
+      display: none !important;
+    }
+
+    /* 🌊 向下滑動時：兩側按鈕背景設為半透明 */
+    .toolbar-card.is-scrolled .btn-tag-icon,
+    .toolbar-card.is-scrolled .btn-copy-icon {
+      opacity: 0.75;
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+    }
+
+    .toolbar-options {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      cursor: pointer;
+      color: #1a1a1a;
+      font-weight: bold;
     }
 
     .toolbar-card input[type="number"] {
@@ -435,9 +465,35 @@
       padding: 4px 6px;
       font-size: 0.95rem;
       font-family: inherit;
+      border-radius: 4px;
+      border: 1px solid #ccc;
     }
 
-    /* 📋 新增「抄」按鈕樣式 (#54d1f0 背景，白字) */
+    /* 🏷️ 工具列標籤圖示按鈕 (#376957 背景，白字) - 點擊返回頂部 */
+    .btn-tag-icon {
+      background-color: #376957 !important;
+      color: #ffffff !important;
+      border: none;
+      height: 36px;
+      padding: 0 12px;
+      border-radius: 8px;
+      font-size: 1.0rem;
+      font-weight: bold;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+      user-select: none;
+      cursor: pointer;
+      transition: opacity 0.25s ease, transform 0.15s ease;
+    }
+
+    .btn-tag-icon:hover {
+      transform: scale(1.05);
+      opacity: 1 !important;
+    }
+
+    /* 📋 複製「抄」按鈕樣式 (#54d1f0 背景，白字) */
     .btn-copy-icon {
       background-color: #54d1f0;
       color: #ffffff;
@@ -452,7 +508,7 @@
       align-items: center;
       justify-content: center;
       box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-      transition: transform 0.15s, background-color 0.15s;
+      transition: transform 0.15s, background-color 0.15s, opacity 0.25s ease;
       user-select: none;
       margin-left: auto;
     }
@@ -460,6 +516,7 @@
     .btn-copy-icon:hover {
       background-color: #38c4e8;
       transform: scale(1.05);
+      opacity: 1 !important;
     }
 
     .words-grid {
@@ -659,7 +716,6 @@
     body.exported-app .empty-prompt {
       color: #475569 !important;
     }
-    /* 💡 匯出版（藍色背景）下，段落標題變為深藍色 (#1e3a8a) */
     body.exported-app .dictation-list h2 {
       color: #1e3a8a !important;
     }
@@ -775,12 +831,22 @@
 
     <main id="mainContent">
       <div class="toolbar-card" id="vocabToolbar">
-        <label>播放間隔：<input type="number" id="vocabDelayInput" value="15" min="1"> 秒</label>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button class="btn-tag-icon" id="vocabTagBtn" onclick="scrollToTop()" title="返回頁面頂部">詞語</button>
+          <span class="toolbar-options">
+            <label>間隔：<input type="number" id="vocabDelayInput" value="15" min="1"> 秒</label>
+          </span>
+        </div>
         <button class="btn-copy-icon" onclick="copyCurrentContent(this)" title="複製當前顯示文字">抄</button>
       </div>
 
       <div class="toolbar-card hidden" id="dictationToolbar">
-        <label>每個字停頓：<input type="number" id="secPerCharInput" value="2.3" min="1" step="0.1"> 秒</label>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button class="btn-tag-icon" onclick="scrollToTop()" title="返回頁面頂部">課文</button>
+          <span class="toolbar-options">
+            <label>每字：<input type="number" id="secPerCharInput" value="2.3" min="1" step="0.1"> 秒</label>
+          </span>
+        </div>
         <button class="btn-copy-icon" onclick="copyCurrentContent(this)" title="複製當前顯示文字">抄</button>
       </div>
 
@@ -796,13 +862,21 @@
     let customProtectedWords = []; 
     let rawDictationText = "";
 
-    // 🔤 自動字形轉換輔助函式：著->着、裡->裏
-    function autoConvertCharacters(text) {
-      if (!text) return "";
-      return text.replace(/著/g, '着').replace(/裡/g, '裏');
+    // ⬆️ 點擊標籤按鈕返回頂部
+    function scrollToTop() {
+      const mainContent = document.getElementById('mainContent');
+      if (mainContent) {
+        mainContent.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     }
 
-    // 🌟 擴充至完整 500 個國小常用詞彙 (自動轉換著/裡)
+    // 🔤 自動字形轉換輔助函式：著->着、裡->裹
+    function autoConvertCharacters(text) {
+      if (!text) return "";
+      return text.replace(/著/g, '着').replace(/裡/g, '裹');
+    }
+
+    // 🌟 500 個國小常用詞彙
     const primarySchoolVocabulary500 = [
       "高興", "快樂", "喜歡", "開心", "難過", "害怕", "緊張", "生氣", "擔心", "滿意",
       "美麗", "漂亮", "可愛", "乾淨", "認真", "專心", "努力", "勇敢", "聰明", "活潑",
@@ -888,14 +962,13 @@
     let wakeUpTimeout = null; 
     let currentLang = 'zh-CN'; 
     let displayMode = 'pinyin'; 
-    let wakeLock = null; // 💡 螢幕常亮控制物件
+    let wakeLock = null; 
 
     const synth = window.speechSynthesis;
 
     const pauseIconSvg = `<svg viewBox="0 0 24 24" fill="#ffffff" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="3" width="5" height="18" rx="1.5"/><rect x="14" y="3" width="5" height="18" rx="1.5"/></svg>`;
     const playIconSvg = `<svg viewBox="0 0 24 24" fill="#ffffff" xmlns="http://www.w3.org/2000/svg"><path d="M8 5v14l11-7z"/></svg>`;
 
-    // 輔助函式：將陣列格式化為每行 4 個，用空格隔開
     function formatWordsTo4PerRow(arr) {
       let result = [];
       for (let i = 0; i < arr.length; i += 4) {
@@ -905,7 +978,6 @@
       return result.join('\n');
     }
 
-    // 🔤 為句段產生帶有標點符號的完整拼音
     function getSentencePinyinWithPunctuation(text) {
       if (!text) return "";
       const convertedText = autoConvertCharacters(text);
@@ -929,7 +1001,6 @@
       return result.trim();
     }
 
-    // 📱 全平台通用複製函式 (支援 Android 相容 Fallback)
     function copyTextToClipboard(textToCopy, successCallback) {
       if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(textToCopy).then(() => {
@@ -970,7 +1041,6 @@
       document.body.removeChild(textArea);
     }
 
-    // 📋 複製當前顯示內容
     function copyCurrentContent(btnElement) {
       let copyText = "";
 
@@ -1052,7 +1122,6 @@
       }
     }
 
-    // 💡 請求保持螢幕常亮 (Screen Wake Lock API)
     async function requestWakeLock() {
       try {
         if ('wakeLock' in navigator) {
@@ -1063,7 +1132,6 @@
       }
     }
 
-    // 💡 釋放螢幕常亮，恢復系統預設休眠
     async function releaseWakeLock() {
       if (wakeLock !== null) {
         try {
@@ -1075,7 +1143,6 @@
       }
     }
 
-    // 當使用者切換頁面或縮小瀏覽器後返回時，自動恢復螢幕常亮
     document.addEventListener('visibilitychange', async () => {
       if (wakeLock !== null && document.visibilityState === 'visible' && isPlaying) {
         await requestWakeLock();
@@ -1173,7 +1240,8 @@
 
     function buildDictationQueue() {
       if (!rawDictationText || !rawDictationText.trim()) return [];
-      const lines = rawDictationText.split('\n');
+      
+      const rawLines = rawDictationText.split('\n');
       const queueList = [];
       let globalIndex = 0;
       
@@ -1185,24 +1253,25 @@
         ...customProtectedWords
       ])).sort((a, b) => b.length - a.length);
 
-      lines.forEach(line => {
-        line = autoConvertCharacters(line.trim().replace(/\s+/g, ''));
-        if (!line) return;
+      rawLines.forEach(line => {
+        const trimmedLine = autoConvertCharacters(line.trim());
 
-        if (line === '下一個自然段') {
-          queueList.push({ type: 'break', text: '下一個自然段' });
+        if (!trimmedLine || trimmedLine === '下一個自然段') {
+          if (queueList.length > 0 && queueList[queueList.length - 1].type !== 'break' && queueList[queueList.length - 1].type !== 'title') {
+            queueList.push({ type: 'break', text: '下一個自然段' });
+          }
           return;
         }
 
-        if (line.startsWith('《') || line.includes('課') || (line.includes('第') && line.includes('段'))) {
-          queueList.push({ type: 'title', text: line });
+        if (trimmedLine.startsWith('《') || trimmedLine.includes('課') || (trimmedLine.includes('第') && trimmedLine.includes('段'))) {
+          queueList.push({ type: 'title', text: trimmedLine });
           return;
         }
 
-        let processedLine = line;
-
+        let processedLine = trimmedLine.replace(/\s+/g, '');
         let clauses = [];
         let cur = "";
+
         for (let i = 0; i < processedLine.length; i++) {
           cur += processedLine[i];
           if ("。\.，,！？\?；;：:─—-…".includes(processedLine[i])) {
@@ -1214,6 +1283,8 @@
 
         clauses.forEach(clause => {
           const charCount = countChineseChars(clause);
+          if (charCount === 0) return;
+
           if (charCount <= 9) {
             globalIndex++;
             queueList.push({ type: 'sentence', text: clause, index: globalIndex });
@@ -1250,10 +1321,14 @@
             let part1 = clause.substring(0, splitPos);
             let part2 = clause.substring(splitPos);
 
-            globalIndex++;
-            queueList.push({ type: 'sentence', text: part1, index: globalIndex });
-            globalIndex++;
-            queueList.push({ type: 'sentence', text: part2, index: globalIndex });
+            if (countChineseChars(part1) > 0) {
+              globalIndex++;
+              queueList.push({ type: 'sentence', text: part1, index: globalIndex });
+            }
+            if (countChineseChars(part2) > 0) {
+              globalIndex++;
+              queueList.push({ type: 'sentence', text: part2, index: globalIndex });
+            }
           }
         });
       });
@@ -1264,9 +1339,10 @@
       queueList.forEach(item => {
         if (item.type === 'sentence') {
           const cleanContent = item.text.trim();
+          const charLen = countChineseChars(cleanContent);
           const isOnlyTrailingPunct = cleanContent.split('').every(ch => trailingPuncts.includes(ch) || /\s/.test(ch));
 
-          if (isOnlyTrailingPunct && cleanedQueueList.length > 0) {
+          if ((charLen <= 1 || isOnlyTrailingPunct) && cleanedQueueList.length > 0) {
             for (let i = cleanedQueueList.length - 1; i >= 0; i--) {
               if (cleanedQueueList[i].type === 'sentence') {
                 cleanedQueueList[i].text += cleanContent;
@@ -1277,6 +1353,11 @@
         }
         cleanedQueueList.push(item);
       });
+
+      // 🧹 清除末尾多餘的 'break'（避免最後一行出現「下一個自然段」）
+      while (cleanedQueueList.length > 0 && cleanedQueueList[cleanedQueueList.length - 1].type === 'break') {
+        cleanedQueueList.pop();
+      }
 
       let reIndex = 0;
       cleanedQueueList.forEach(item => {
@@ -1324,7 +1405,6 @@
       const lines = sanitizedText.split('\n');
       lines.forEach(line => {
         const trimmed = line.trim();
-        if (!trimmed) return;
 
         if (trimmed.toLowerCase().startsWith('title') || trimmed.includes('開心小學') || trimmed.includes('四年級中默')) {
           let cleanedTitle = trimmed.replace(/^title[:：\s]*/i, '');
@@ -1340,8 +1420,9 @@
         if (trimmed.includes('聽寫課文段落')) { currentSection = 'dictation'; return; }
 
         if (currentSection === 'dictation') {
-          newDictation.push(autoConvertCharacters(trimmed.replace(/\s+/g, '')));
+          newDictation.push(autoConvertCharacters(trimmed));
         } else {
+          if (!trimmed) return;
           const words = trimmed.split(/[\s,，\t、]+/).filter(Boolean);
           words.forEach(w => {
             const cleanWord = autoConvertCharacters(w.replace(/[《》〈〉\(\)（）:：Title「」『』─—\-。\.，,！？\?；;、…\s]/gi, '').trim());
@@ -1457,12 +1538,13 @@
       if (currentTab === 'tab1' || currentTab === 'tab3' || currentTab === 'tab4') {
         displayMode = 'pinyin';
       } else if (currentTab === 'tab2') {
-        displayMode = 'han';
+        displayMode = 'blank';
       }
 
       const area = document.getElementById('contentArea');
       const vocabToolbar = document.getElementById('vocabToolbar');
       const dictationToolbar = document.getElementById('dictationToolbar');
+      const vocabTagBtn = document.getElementById('vocabTagBtn');
 
       if (!area) return;
 
@@ -1473,6 +1555,13 @@
       } else {
         if (vocabToolbar) vocabToolbar.classList.remove('hidden');
         if (dictationToolbar) dictationToolbar.classList.add('hidden');
+
+        if (vocabTagBtn) {
+          if (currentTab === 'tab1') vocabTagBtn.textContent = '詞語';
+          else if (currentTab === 'tab2') vocabTagBtn.textContent = '拼音';
+          else if (currentTab === 'tab3') vocabTagBtn.textContent = '成語';
+        }
+
         renderVocabGrid(area);
       }
     }
@@ -1496,7 +1585,7 @@
             <div class="word-index">#${idx + 1}</div>
             <div class="word-text">${cleanWord}</div>
             <div class="pinyin-text">${dynamicPinyin}</div>
-            <button class="card-play-btn" onclick="event.stopPropagation(); playSingleWord('${cleanWord}')">▶</button>
+            <button class="card-play-btn" onclick="event.stopPropagation(); clickPlayVocab(${idx})">▶</button>
           </div>
         `;
       });
@@ -1767,17 +1856,26 @@
       }
     }
 
+    /* 🎯 詞語點擊處理：Auto Mode 下連續播放，非 Auto Mode 下單獨播放 */
     function clickPlayVocab(idx) {
-      resetPlayback();
-      isPlaying = true;
-      isReviewPhase = false;
-      requestWakeLock();
+      highlightVocabCard(idx);
       let data = vocabWords;
       if (currentTab === 'tab2') data = pinyinVocabWords;
       if (currentTab === 'tab3') data = idiomWords;
-      queue = data;
-      playIndex = idx;
-      playNextVocabStep();
+
+      if (!data || !data[idx]) return;
+
+      if (isPlaying) {
+        // 在 Auto Mode 中，跳轉至該位置並繼續往下播放
+        if (wakeUpTimeout) clearTimeout(wakeUpTimeout);
+        clearInterval(timerInterval);
+        queue = data;
+        playIndex = idx;
+        playNextVocabStep();
+      } else {
+        // 非 Auto Mode，僅朗讀當前詞語一次，不啟動 Auto Mode
+        playSingleWord(data[idx]);
+      }
     }
 
     function playNextDictationStep() {
@@ -1884,7 +1982,7 @@
 
       let tokenIdx = 0;
       function step() {
-        if (!isPlaying || tokenIdx >= tokens.length) {
+        if (tokenIdx >= tokens.length) {
           if (onComplete) onComplete();
           return;
         }
@@ -1895,9 +1993,7 @@
           speakText(tok.val, step);
         } else if (tok.type === 'punct') {
           startTimer(2, () => {
-            if (!isPlaying) return;
             speakText(tok.val, () => {
-              if (!isPlaying) return;
               startTimer(2, step);
             });
           });
@@ -1915,15 +2011,26 @@
       }
     }
 
+    /* 🎯 課文句子點擊處理：Auto Mode 下連續播放，非 Auto Mode 下單獨播放 */
     function clickPlayDictation(index) {
-      resetPlayback();
-      isPlaying = true;
-      isReviewPhase = false;
-      requestWakeLock();
-      queue = buildDictationQueue().filter(q => q.type === 'sentence' || q.type === 'break');
-      playIndex = queue.findIndex(q => q.index === index);
-      if (playIndex !== -1) {
-        playNextDictationStep();
+      highlightDictationCard(`dcard_${index}`);
+      const dictQueue = buildDictationQueue().filter(q => q.type === 'sentence' || q.type === 'break');
+
+      if (isPlaying) {
+        // 在 Auto Mode 中，跳轉至該句子並繼續往下播放
+        if (wakeUpTimeout) clearTimeout(wakeUpTimeout);
+        clearInterval(timerInterval);
+        queue = dictQueue;
+        playIndex = dictQueue.findIndex(q => q.index === index);
+        if (playIndex !== -1) {
+          playNextDictationStep();
+        }
+      } else {
+        // 非 Auto Mode，僅朗讀當前句子一次，不啟動 Auto Mode
+        const item = dictQueue.find(q => q.index === index);
+        if (item) {
+          speakSentenceWithPunctuation(item.text, null);
+        }
       }
     }
 
@@ -1992,6 +2099,18 @@
           editor.value = converted;
           parseAndApplyFullText(converted);
         }
+      }
+
+      const mainContent = document.getElementById('mainContent');
+      if (mainContent) {
+        mainContent.addEventListener('scroll', () => {
+          const toolbars = document.querySelectorAll('.toolbar-card');
+          if (mainContent.scrollTop > 0) {
+            toolbars.forEach(tb => tb.classList.add('is-scrolled'));
+          } else {
+            toolbars.forEach(tb => tb.classList.remove('is-scrolled'));
+          }
+        });
       }
 
       switchTab('tab1', document.getElementById('btn_tab1'));
